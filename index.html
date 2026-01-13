@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GROZBUZZ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="theme-toggle" id="themeToggle">
+    <span id="themeIcon">🌙</span>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <h1>GROZBUZZ</h1>
+      <p>Stay informed with the latest updates</p>
+    </div>
+
+    <div class="Search-categories">
+      <input
+        type="text"
+        class="search-box"
+        placeholder="Search news..."
+        id="searchInput"
+      />
+
+      <div class="categories">
+        <button class="category-btn active" data-category="general">General</button>
+        <button class="category-btn" data-category="business">Business</button>
+        <button class="category-btn" data-category="entertainment">Entertainment</button>
+        <button class="category-btn" data-category="health">Health</button>
+        <button class="category-btn" data-category="science">Science</button>
+        <button class="category-btn" data-category="sports">Sports</button>
+      </div>
+    </div>
+
+    <div class="news-grid" id="newsGrid"></div>
+
+    <div class="loading" id="loading" style="display:none;">
+      <p>Loading news...</p>
+    </div>
+
+    <div class="error" id="error" style="display:none;"></div>
+
+    <div class="end-message" id="endMessage" style="display:none;">
+      <p>No more news to load.</p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
