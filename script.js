@@ -3,12 +3,20 @@ class NewsApp {
     this.API_KEY = "8dbaacd25d6c31a6aee6f80ca8394805";
     this.BASE_URL = "https://gnews.io/api/v4";
 
+    this.categoryMap = {
+      general: "world",        // FIX ✅
+      business: "business",
+      entertainment: "entertainment",
+      health: "health",
+      science: "science",
+      sports: "sports"
+    };
+
     this.state = {
       category: "general",
       query: "",
       page: 1,
       pageSize: 9,
-      articles: [],
       loading: false
     };
 
@@ -25,15 +33,8 @@ class NewsApp {
   setupTheme() {
     const theme = localStorage.getItem("theme") || "light";
     document.documentElement.setAttribute("data-theme", theme);
-
-    const icon = document.getElementById("themeIcon");
-    icon.textContent = theme === "dark" ? "☀️" : "🌙";
-
-    document.getElementById("themeToggle").onclick = () => {
-      const next = theme === "dark" ? "light" : "dark";
-      localStorage.setItem("theme", next);
-      location.reload();
-    };
+    document.getElementById("themeIcon").textContent =
+      theme === "dark" ? "☀️" : "🌙";
   }
 
   /* ---------- EVENTS ---------- */
@@ -42,31 +43,12 @@ class NewsApp {
       btn.addEventListener("click", () => this.changeCategory(btn.dataset.category));
     });
 
-    const searchInput = document.getElementById("searchInput");
     let debounce;
-
-    searchInput.addEventListener("input", e => {
+    document.getElementById("searchInput").addEventListener("input", e => {
       clearTimeout(debounce);
       debounce = setTimeout(() => {
         this.search(e.target.value.trim());
       }, 500);
-    });
-
-    window.addEventListener("scroll", () => {
-      if (
-        window.innerHeight + window.scrollY >=
-        document.body.offsetHeight - 500 &&
-        !this.state.loading
-      ) {
-        this.loadMore();
-      }
-    });
-
-    document.addEventListener("click", e => {
-      const card = e.target.closest(".news-card");
-      if (card?.dataset.url) {
-        window.open(card.dataset.url, "_blank");
-      }
     });
   }
 
@@ -75,21 +57,19 @@ class NewsApp {
     const params = new URLSearchParams({
       token: this.API_KEY,
       lang: "en",
-      max: this.state.pageSize,
-      page: this.state.page
+      max: this.state.pageSize
     });
 
     if (this.state.query) {
       params.append("q", this.state.query);
     } else {
-      params.append("topic", this.state.category);
+      params.append("topic", this.categoryMap[this.state.category]);
     }
 
     return `${this.BASE_URL}/top-headlines?${params}`;
   }
 
   async loadNews() {
-    this.state.loading = true;
     this.toggleLoading(true);
 
     try {
@@ -101,20 +81,13 @@ class NewsApp {
         return;
       }
 
-      this.state.articles = data.articles;
       this.renderNews(data.articles);
     } catch (err) {
-      this.showError("Failed to load news");
       console.error(err);
+      this.showError("API request failed");
     } finally {
       this.toggleLoading(false);
-      this.state.loading = false;
     }
-  }
-
-  async loadMore() {
-    this.state.page++;
-    this.loadNews();
   }
 
   changeCategory(category) {
@@ -125,14 +98,12 @@ class NewsApp {
 
     this.state.category = category;
     this.state.query = "";
-    this.state.page = 1;
     document.getElementById("newsGrid").innerHTML = "";
     this.loadNews();
   }
 
   search(query) {
     this.state.query = query;
-    this.state.page = 1;
     document.getElementById("newsGrid").innerHTML = "";
     this.loadNews();
   }
@@ -140,28 +111,26 @@ class NewsApp {
   /* ---------- UI ---------- */
   renderNews(articles) {
     const grid = document.getElementById("newsGrid");
+    grid.innerHTML = "";
 
     articles.forEach(article => {
       const card = document.createElement("div");
       card.className = "news-card";
-      card.dataset.url = article.url;
-
-      const image = article.image
-        ? `<img src="${article.image}" class="news-image">`
-        : `<div class="news-image default-image">NEWS</div>`;
+      card.onclick = () => window.open(article.url, "_blank");
 
       card.innerHTML = `
-        ${image}
+        ${article.image
+          ? `<img src="${article.image}" class="news-image">`
+          : `<div class="news-image default-image">NEWS</div>`}
         <div class="news-content">
           <h3>${article.title}</h3>
-          <p>${article.description || "No description available."}</p>
+          <p>${article.description || ""}</p>
           <div class="news-meta">
             <span>${article.source?.name || "Unknown"}</span>
             <span>${new Date(article.publishedAt).toLocaleDateString()}</span>
           </div>
         </div>
       `;
-
       grid.appendChild(card);
     });
   }
@@ -172,8 +141,8 @@ class NewsApp {
 
   showError(msg) {
     const el = document.getElementById("error");
-    el.textContent = msg;
     el.style.display = "block";
+    el.textContent = msg;
   }
 }
 
